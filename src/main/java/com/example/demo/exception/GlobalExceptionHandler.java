@@ -1,5 +1,6 @@
 package com.example.demo.exception;
 
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,14 +20,12 @@ public class GlobalExceptionHandler {
 	    ex.getBindingResult().getFieldErrors().forEach(
 	        error -> errors.put(error.getField(), error.getDefaultMessage())
 	    );
-	    ErrorResponse errorResponse = new ValidationErrorResponse(errors.toString()); 
-	    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+	    return ErrorResponseFactory.validationError(errors.toString());
 	}
 
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
-	    ErrorResponse errorResponse = new RuntimeErrorResponse(ex.getMessage()); 
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	    return ErrorResponseFactory.runtimeError(ex.getMessage());
 	}
 	
 }
