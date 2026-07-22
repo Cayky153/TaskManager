@@ -17,8 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.demo.Tarefas;
-import com.example.demo.TarefasRepo;
+import com.example.demo.model.Tarefas;
+import com.example.demo.repository.TarefasRepo;
+import com.example.demo.service.TarefaServices;
 
 @ExtendWith(MockitoExtension.class)
 public class TarefaServicesTest {
@@ -71,7 +72,7 @@ public class TarefaServicesTest {
 		
 		when(repository.save(tarefa)).thenReturn(tarefa);
 		
-		Tarefas serviceAdicionar = service.salvar(tarefa);
+		Tarefas serviceAdicionar = service.adicionar(tarefa);
 		
 		assertEquals(tarefa,serviceAdicionar);
 		verify(repository).save(tarefa);
@@ -84,7 +85,7 @@ public class TarefaServicesTest {
 		
 		when(repository.saveAll(tarefasArray)).thenReturn(tarefasArray);
 		
-		List<Tarefas> serviceAdicionarLista = service.salvarLista(tarefasArray);
+		List<Tarefas> serviceAdicionarLista = service.adicionarLista(tarefasArray);
 		
 		assertEquals(tarefasArray,serviceAdicionarLista);
 		verify(repository).saveAll(tarefasArray);
