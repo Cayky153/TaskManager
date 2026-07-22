@@ -1,9 +1,19 @@
-package com.example.demo;
+package com.example.demo.model;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
+
+@JsonPropertyOrder({
+    "id",
+    "titulo",
+    "descricao",
+    "tipo",
+    "prioridade"
+})
 @Entity
 @Table(name = "Tarefas")
 public class Tarefas {
