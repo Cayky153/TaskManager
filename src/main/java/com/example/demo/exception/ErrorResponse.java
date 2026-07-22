@@ -8,6 +8,12 @@ public abstract class ErrorResponse {
 	private int status;
     private String error;
     private String message;
+    
+    
+    public final void montar() {   
+        this.status = getStatus();
+        this.error = getTipoErro();
+    }
 
     public LocalDateTime getTimeStamp() {
 		return timeStamp;
@@ -21,10 +27,9 @@ public abstract class ErrorResponse {
 		return message;
 	}
     public ErrorResponse(String message) {
-        this.timeStamp = LocalDateTime.now();
-        this.status = getStatus();     
-        this.error = getTipoErro();     
+        this.timeStamp = LocalDateTime.now();   
         this.message = message;
+        montar();
     }
 
     protected abstract int getStatus();     
