@@ -298,3 +298,7 @@ A aplicação sobe por padrão em `http://localhost:8080`.
 ```
 ./mvnw test
 ```
+
+## Desenvolvedor
+---
+Antonio Pedro Cayky Do Nascimento Pereira - estudante de Sistemas e Mídias Digitais na Universidade Federal do Ceará, Brasil.
