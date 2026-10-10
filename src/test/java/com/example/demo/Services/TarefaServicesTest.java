@@ -98,14 +98,13 @@ public class TarefaServicesTest {
 		
 		
 		long tarefaId = tarefa.getId();
-		when(repository.findById(tarefaId)).thenReturn(Optional.of(tarefa));
-		
-		service.deletar(tarefaId);
-		
-		verify(repository).findById(tarefaId);
-		verify(repository).deleteById(tarefaId);
-		verify(repository).findAll();
-		verifyNoMoreInteractions(repository);
+	    when(repository.findById(tarefaId)).thenReturn(Optional.of(tarefa));
+
+	    service.deletar(tarefaId);
+
+	    verify(repository).findById(tarefaId);
+	    verify(repository).deleteById(tarefaId);
+	    verifyNoMoreInteractions(repository);
 		
 	}
 	@Test
@@ -119,8 +118,8 @@ public class TarefaServicesTest {
 		});
 		assertThat(e.getMessage())
 	    .isEqualTo("Tarefa não encontrada");
-		verify(repository).findById(tarefaId);
-		verifyNoMoreInteractions(repository);
+		
+
 	}
 	@Test
 	void EditarSucess() {

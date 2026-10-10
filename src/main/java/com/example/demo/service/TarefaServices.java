@@ -25,11 +25,11 @@ public class TarefaServices {
 		return tarefaRepo.findById(id);
 	}
 	
-	public Tarefas adicionar(Tarefas t) {
+	public <T extends Tarefas> T adicionar(T t) {
 		return tarefaRepo.save(t);
 	}
 	
-	public List<Tarefas> adicionarLista(List<Tarefas> tarefas) {
+	public <T extends Tarefas> List<T> adicionarLista(List<T> tarefas) {
 		return tarefaRepo.saveAll(tarefas);
 	}
 

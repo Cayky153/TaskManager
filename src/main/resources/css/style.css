@@ -1,0 +1,40 @@
+.fundo {
+    -fx-background-color: #f4f4f4;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+}
+
+.titulo {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2328;
+}
+
+.botao-primario {
+    -fx-background-color: #0b6fa4;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.botao-primario:hover {
+    -fx-background-color: #095a85;
+}
+
+.botao-perigo {
+    -fx-background-color: white;
+    -fx-text-fill: #b42318;
+    -fx-border-color: #b42318;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.botao-perigo:hover {
+    -fx-background-color: #fdecea;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #cfe6f4;
+}

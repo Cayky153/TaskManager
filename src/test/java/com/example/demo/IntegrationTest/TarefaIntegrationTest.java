@@ -1,6 +1,9 @@
 package com.example.demo.IntegrationTest;
 
 import com.jayway.jsonpath.JsonPath;
+
+import jakarta.transaction.Transactional;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
+@Transactional
 @AutoConfigureMockMvc
 public class TarefaIntegrationTest {
 
@@ -25,7 +29,6 @@ public class TarefaIntegrationTest {
     private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    // ✔ CREATE + VALIDATION + JSON + DB
     @Test
     void deveCriarTarefa() throws Exception {
 
@@ -35,18 +38,18 @@ public class TarefaIntegrationTest {
         tarefa.setTipo("ESTUDO");
         tarefa.setPrioridade("ALTA");
 
-        mockMvc.perform(post("/adicionarTarefa")
+        mockMvc.perform(post("/adicionar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tarefa)))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.data.titulo").value("Estudar Spring"));
     }
 
-    // ✔ VALIDATION + EXCEPTION HANDLER
+
     @Test
     void deveFalharQuandoCamposInvalidos() throws Exception {
 
-        mockMvc.perform(post("/adicionarTarefa")
+        mockMvc.perform(post("/adicionar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                 {
@@ -59,16 +62,16 @@ public class TarefaIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
-    // ✔ LISTAGEM (SMOKE TEST + DB + SERIALIZATION)
+    
     @Test
     void deveListarTarefas() throws Exception {
 
-        mockMvc.perform(get("/listagem"))
+        mockMvc.perform(get("/listar"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data").isArray());
     }
 
-    // ✔ INTEGRAÇÃO REAL (FLUXO COMPLETO SIMPLES)
+ 
     @Test
     void deveCriarEDeletarTarefa() throws Exception {
 
@@ -78,7 +81,7 @@ public class TarefaIntegrationTest {
         tarefa.setTipo("TESTE");
         tarefa.setPrioridade("ALTA");
 
-        String response = mockMvc.perform(post("/adicionarTarefa")
+        String response = mockMvc.perform(post("/adicionar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tarefa)))
             .andExpect(status().isCreated())
@@ -89,7 +92,7 @@ public class TarefaIntegrationTest {
         Number idNumber = JsonPath.read(response, "$.data.id");
         Long id = idNumber.longValue();
 
-        mockMvc.perform(delete("/delete/" + id))
+        mockMvc.perform(delete("/deletar/" + id))
             .andExpect(status().isOk());
     }
 }
