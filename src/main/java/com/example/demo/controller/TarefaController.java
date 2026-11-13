@@ -19,9 +19,17 @@ import com.example.demo.model.Tarefas;
 import com.example.demo.service.TarefaServices;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 
 @RestController
+@Tag(name = "Tarefas", description = "CRUD de tarefas")
 public class TarefaController {
 
 	private final TarefaServices tarefaService;
@@ -45,7 +53,27 @@ public class TarefaController {
 		return ResponseEntity
 				.ok(Map.of("message", "Tarefa buscada com sucesso!", "status", 200, "data", tarefa));
 	}
-
+	@Operation(summary = "Cria uma tarefa",
+	           description = "Recebe titulo, descricao, tipo e prioridade e devolve a tarefa criada com seu id.")
+	@ApiResponses({
+	    @ApiResponse(responseCode = "201", description = "Tarefa criada",
+	        content = @Content(mediaType = "application/json",
+	            schema = @Schema(implementation = Tarefas.class),
+	            examples = @ExampleObject(value = """
+	                {
+	                  "message": "Tarefa criada com sucesso",
+	                  "status": 201,
+	                  "data": {
+	                    "id": 1,
+	                    "titulo": "Estudar Spring",
+	                    "descricao": "Teste integração",
+	                    "tipo": "ESTUDO",
+	                    "prioridade": "ALTA"
+	                  }
+	                }
+	                """))),
+	    @ApiResponse(responseCode = "400", description = "Campos obrigatórios ausentes ou em branco")
+	})
 	@PostMapping("/adicionar")
 	public ResponseEntity<?> adicionar(@Valid @RequestBody TarefaRequest request) {
 		  Tarefas tarefa = new Tarefas();
