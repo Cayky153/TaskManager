@@ -3,17 +3,20 @@ package com.example.demo.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.exception.TarefaNaoEncontradaException;
 import com.example.demo.model.Tarefas;
 import com.example.demo.repository.TarefasRepo;
 
 @Service
 public class TarefaServices {
 
-	@Autowired
-	private TarefasRepo tarefaRepo;
+	private final TarefasRepo tarefaRepo;
+
+	public TarefaServices(TarefasRepo tarefaRepo) {
+		this.tarefaRepo = tarefaRepo;
+	}
 
 	public List<Tarefas> listar() {
 		return tarefaRepo.findAll();
@@ -21,7 +24,7 @@ public class TarefaServices {
 	
 	public Optional<Tarefas> listarId(Long id) {
 		tarefaRepo.findById(id)
-		.orElseThrow(()-> new RuntimeException("Tarefa não encontrada"));
+		.orElseThrow(TarefaNaoEncontradaException::new);
 		return tarefaRepo.findById(id);
 	}
 	
@@ -34,7 +37,7 @@ public class TarefaServices {
 	}
 
 	public Tarefas editar(Long id, Tarefas nova) {
-		Tarefas existente = tarefaRepo.findById(id).orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+		Tarefas existente = tarefaRepo.findById(id).orElseThrow(TarefaNaoEncontradaException::new);
 		existente.setTitulo(nova.getTitulo());
 		existente.setDescricao(nova.getDescricao());
 		existente.setTipo(nova.getTipo());
@@ -44,7 +47,7 @@ public class TarefaServices {
 	
 	public void deletar(Long id) {
     	tarefaRepo.findById(id)
-    		.orElseThrow(()-> new RuntimeException("Tarefa não encontrada"));
+    		.orElseThrow(TarefaNaoEncontradaException::new);
     	tarefaRepo.deleteById(id); 
     	
     	}
