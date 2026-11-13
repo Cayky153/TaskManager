@@ -19,6 +19,13 @@ target/
 *.iml
 *.ipr
 
+spring.datasource.url=jdbc:h2:mem:testdb;MODE=PostgreSQL
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -29,9 +36,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+target/
+.env
+.sonar
+
 ### VS Code ###
 .vscode/
 
-# Config sensível
-application.properties
-application.yml
