@@ -14,4 +14,8 @@ public class ErrorResponseFactory {
     	   ErrorResponse response = new RuntimeErrorResponse(message);
            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    public static ResponseEntity<ErrorResponse> notFoundError(String message) {
+        ErrorResponse response = new RuntimeErrorResponse(message);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }
