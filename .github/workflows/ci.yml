@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Install (dependencias)
+        run: mvn -B -ntp dependency:resolve
+
+      - name: Lint (Checkstyle)
+        run: mvn -B -ntp checkstyle:check
+
+      - name: Test (com cobertura minima)
+        run: mvn -B -ntp clean verify
