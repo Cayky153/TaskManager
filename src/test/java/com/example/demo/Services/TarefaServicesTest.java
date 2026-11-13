@@ -1,11 +1,15 @@
 package com.example.demo.Services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +71,36 @@ public class TarefaServicesTest {
 		
 	}
 	@Test
+	void ListarIdSucess() {
+		long tarefaId = tarefa.getId();
+		when(repository.findById(tarefaId)).thenReturn(Optional.of(tarefa));
+
+		Optional<Tarefas> serviceListarId = service.listarId(tarefaId);
+		assertAll(
+			() -> assertTrue(serviceListarId.isPresent()),
+			() -> assertEquals(tarefa, serviceListarId.get())
+		);
+		verify(repository, times(2)).findById(tarefaId);
+		verifyNoMoreInteractions(repository);
+	}
+
+	@Test
+	void ListarIdFailure() {
+
+		long tarefaId = tarefa.getId();
+		when(repository.findById(tarefaId)).thenReturn(Optional.empty());
+
+		RuntimeException e = assertThrows(RuntimeException.class, () -> {
+			service.listarId(tarefaId);
+		});
+
+		assertAll(
+			() -> assertThat(e.getMessage()).isEqualTo("Tarefa não encontrada")
+		);
+		verify(repository).findById(tarefaId);
+		verifyNoMoreInteractions(repository);
+	}
+	@Test
 	void SalvarSucess() {
 		
 		
@@ -120,6 +154,14 @@ public class TarefaServicesTest {
 	    .isEqualTo("Tarefa não encontrada");
 		
 
+	}
+	@Test
+	void DeletarTudoSucess() {
+
+		service.deletarTudo();
+
+		verify(repository).deleteAll();
+		verifyNoMoreInteractions(repository);
 	}
 	@Test
 	void EditarSucess() {
