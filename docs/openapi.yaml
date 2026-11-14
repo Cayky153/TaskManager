@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: Tarefas
+  description: CRUD de tarefas
+paths:
+  /editar/{id}:
+    put:
+      tags:
+      - Tarefas
+      operationId: editar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TarefaRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /adicionar:
+    post:
+      tags:
+      - Tarefas
+      summary: Cria uma tarefa
+      description: "Recebe titulo, descricao, tipo e prioridade e devolve a tarefa\
+        \ criada com seu id."
+      operationId: adicionar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TarefaRequest"
+        required: true
+      responses:
+        "201":
+          description: Tarefa criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tarefas"
+              example:
+                message: Tarefa criada com sucesso
+                status: 201
+                data:
+                  id: 1
+                  titulo: Estudar Spring
+                  descricao: Teste integração
+                  tipo: ESTUDO
+                  prioridade: ALTA
+        "400":
+          description: Campos obrigatórios ausentes ou em branco
+          content:
+            '*/*':
+              schema:
+                type: object
+  /adicionarLista:
+    post:
+      tags:
+      - Tarefas
+      operationId: adicionarLista
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/TarefaRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /listar:
+    get:
+      tags:
+      - Tarefas
+      operationId: listar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /listarPorId/{id}:
+    get:
+      tags:
+      - Tarefas
+      operationId: listarId
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /deletarTudo:
+    delete:
+      tags:
+      - Tarefas
+      operationId: deletarTudo
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /deletar/{id}:
+    delete:
+      tags:
+      - Tarefas
+      operationId: deletar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+components:
+  schemas:
+    TarefaRequest:
+      type: object
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descricao:
+          type: string
+          minLength: 1
+        tipo:
+          type: string
+          minLength: 1
+        prioridade:
+          type: string
+          minLength: 1
+      required:
+      - descricao
+      - prioridade
+      - tipo
+      - titulo
+    Tarefas:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        titulo:
+          type: string
+          minLength: 1
+        descricao:
+          type: string
+          minLength: 1
+        tipo:
+          type: string
+          minLength: 1
+        prioridade:
+          type: string
+          minLength: 1
+      required:
+      - descricao
+      - prioridade
+      - tipo
+      - titulo
