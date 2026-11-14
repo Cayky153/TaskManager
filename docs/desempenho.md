@@ -10,11 +10,11 @@ Este documento descreve a meta de desempenho do TaskManager API (SLO), como a ap
 - `POST /adicionar` foi escolhido por ser o fluxo principal do CRUD e o que escreve no banco a cada chamada.
 - O limite de 500 ms é uma meta inicial para uma API simples com banco local, e pode ser revisada quando houver medições.
 
-**Status:** o SLO está definido como meta e codificado no script de teste (seção 4), que falha automaticamente se a meta for violada. Este documento não registra resultados de execução.
+**Status:** o SLO foi cumprido na execução registrada na seção 5 (p95 de 43,48 ms contra a meta de 500 ms, com 0% de erros), em condições leves de smoke test. Isso não garante o cumprimento sob carga maior (ver limitações, seção 6).
 
 ## 2. Instrumentação da aplicação
 
-A aplicação expõe métricas pelo Spring Boot Actuator e Micrometer em `http://localhost:8080/actuator/prometheus`, em formato de texto Prometheus (evidência: `docs/evidencias/prometheus.png`).
+A aplicação expõe métricas pelo Spring Boot Actuator e Micrometer em `http://localhost:8080/actuator/prometheus`, em formato de texto Prometheus (evidência: [`provas/prometheus.png`](provas/prometheus.png)).
 
 | Métrica | O que mostra |
 |---|---|
@@ -82,19 +82,25 @@ docker run --rm -i -v "%cd%\k6":/scripts -e BASE_URL=http://host.docker.internal
 
 No final da saída, as linhas `http_req_duration` (com `p(95)`) e `http_req_failed` indicam se a meta foi cumprida. Cada iteração cria uma tarefa real; para limpar depois, use `DELETE /deletarTudo` ou `docker compose down -v`.
 
-## 5. Limitações do teste
+## 5. Resultado da execução
 
-- **É um smoke test, não um teste de carga.** Com 5 usuários por 30 s, verifica o comportamento em condições leves e não diz nada sobre dezenas ou centenas de usuários simultâneos.
-- **Aquecimento da JVM.** A aplicação leva cerca de 8 s para subir, e as primeiras requisições tendem a ser mais lentas (classes carregando, pool abrindo conexões).
-- **Ambiente local compartilhado.** Cliente, API e banco rodam na mesma máquina e competem pelos mesmos recursos; não há latência de rede.
-- **Uma única rota.** Apenas `POST /adicionar` está coberto.
-- **Banco quase vazio.** O tempo de escrita tende a crescer com o volume de dados, e o teste não cobre esse cenário.
-- **Sem integração ao CI.** O teste é executado manualmente.
+Execução de `k6 run k6/smoke.js` contra `POST /adicionar`, em Windows, com cliente e API na mesma máquina (API em `localhost:8080`). Evidências: [`provas/k6.1.png`](provas/k6.1.png) (resumo completo) e [`provas/k6.2.png`](provas/k6.2.png) (limites do SLO).
 
-## 6. Próximos passos
+| Métrica | Resultado | Limite (SLO) | Status |
+|---|---|---|---|
+| p(95) de `http_req_duration` | **43,48 ms** | < 500 ms | Cumprido |
+| `http_req_failed` | **0,00%** (0 de 145) | < 1% | Cumprido |
+| p(90) | 42,4 ms | n/a | n/a |
+| Média | 34,71 ms | n/a | n/a |
+| Mediana | 37,34 ms | n/a | n/a |
+| Mínimo / máximo | 15,93 ms / 48,41 ms | n/a | n/a |
+| Verificações (`status 201`) | 100% (145 de 145) | n/a | n/a |
+| Requisições totais | 145 em 30,1 s (cerca de 4,8 por segundo) | n/a | n/a |
+| Usuários virtuais | 5 (constante) | n/a | n/a |
 
-1. Registrar a execução do k6 neste documento (p95, taxa de erro e ambiente).
-2. Medir também `GET /listar` e `PUT /editar/{id}`.
-3. Subir a carga gradualmente (teste de estresse) para achar o ponto em que o SLO deixa de ser cumprido, observando o pool do Hikari.
-4. Conectar um Prometheus e um painel para acompanhar o p95 vindo da própria aplicação.
-5. Rodar o k6 no CI contra a API subida pelo Compose, falhando o pipeline se o SLO for violado.
+**Leitura dos números**
+
+- O p95 ficou cerca de 11 vezes abaixo do limite, e a dispersão é pequena (de 16 a 48 ms entre o mínimo e o máximo). Não houve pico de latência na execução.
+- Os cerca de 4,8 requisições por segundo **não medem a capacidade da API**: cada usuário virtual espera 1 s entre iterações, e cada iteração dura cerca de 1,03 s (1 s de pausa mais cerca de 35 ms de requisição). A vazão aqui é consequência do desenho do teste.
+- A margem grande indica que o limite de 500 ms é folgado para este cenário. Apertá-lo só faz sentido depois de um teste com mais carga.
+- O teste criou 145 tarefas reais no banco.
