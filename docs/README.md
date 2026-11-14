@@ -17,7 +17,7 @@
 
 Nível selecionado: **NIVEL B**
 
-O **TaskManager API** é uma API REST desenvolvida individualmente com Spring Boot para criar, listar, editar e remover tarefas, com persistência em PostgreSQL, validação de entrada e respostas de erro padronizadas. O projeto também possui uma interface frontend em JavaFX. O foco principal é o **backend** (qualidade, testes, operação e documentação); a interface JavaFX é apenas um complemento que reaproveita a mesma camada de serviço. Esse README tem o objetivo de responder, de forma estruturada e nesta exata ordem: o que o sistema realiza (em duas frases); como inicializá-lo localmente com comandos que funcionem de primeira; como executar a bateria de testes; quais variáveis de ambiente são obrigatórias; onde se encontram as decisões arquiteturais; e, por fim, a quem recorrer em caso de dúvidas. Entretanto, esse projeto estará presente no meu portfolio, então também servirá para detalhar o projeto mais a fundo, além de defender como cada requisito do trabalho final foi atendido.
+O **TaskManager API** é uma API REST em Spring Boot, desenvolvida individualmente, para criar, listar, editar e remover tarefas, com persistência em PostgreSQL, validação de entrada e respostas de erro padronizadas. O foco é o **backend** (qualidade, testes, operação e documentação); a interface JavaFX é apenas um complemento que reaproveita a mesma camada de serviço.
 
 > **Origem e foco.** O projeto foi desenvolvido individualmente no contexto da disciplina de Engenharia de Software e posteriormente incrementado com práticas de engenharia: CI, cobertura mínima, métricas, logs estruturados e documentação. O frontend (JavaFX) foi desenvolvido como complemento exigido na entrega da disciplina. Por isso, os testes, a cobertura e a análise de qualidade priorizam o backend, e a camada `view` fica de fora da cobertura (decisão registrada abaixo).
 
@@ -42,7 +42,7 @@ Quando o log mostrar `Started DemoApplication`, a API estará disponível em `ht
 | O quê | URL |
 |---|---|
 | Documentação interativa (Swagger UI) | http://localhost:8080/swagger-ui.html |
-| Especificação OpenAPI | http://localhost:8080/v3/api-docs (exportada em `docs/openapi.yaml`) |
+| Especificação OpenAPI | http://localhost:8080/v3/api-docs (exportada em [`openapi.yaml`](openapi.yaml)) |
 | Saúde | http://localhost:8080/actuator/health |
 | Métricas (Prometheus) | http://localhost:8080/actuator/prometheus |
 
@@ -72,7 +72,7 @@ A execução deve ser feita pela `Launcher`: a `App` falha com `JavaFX runtime c
 
 Esse comando executa, em ordem: Checkstyle (fase `validate`), testes unitários e de integração, empacotamento e a **checagem de cobertura mínima** do JaCoCo. Se qualquer etapa falhar, o build também falha. Esse é o mesmo comando executado pelo CI.
 
-- **Testes unitários** (`Services/`): `TarefaServices` com Mockito, cobrindo sucesso e falha de cada operação.
+- **Testes unitários** (`Services/`): `TarefaServices` com Mockito, cobrindo sucesso e, onde há caminho de erro, também falha.
 - **Testes de integração** (`IntegrationTest/`): todas as rotas via MockMvc, com contexto Spring completo e `@Transactional`.
 - **Banco nos testes:** H2 em memória (`src/test/resources/application.properties`). Os testes e o CI **não precisam de PostgreSQL nem de senha**.
 - **Relatório de cobertura:** `target/site/jacoco/index.html`.
@@ -82,9 +82,9 @@ Esse comando executa, em ordem: Checkstyle (fase `validate`), testes unitários 
 - *Cobertura mínima declarada e respeitada:* o mínimo está no `pom.xml` (JaCoCo, regra `check` na fase `verify`) e o build falha se ficar abaixo do limite. A cobertura exclui `com.example.demo.view/**` (JavaFX) e `DemoApplication` (bootstrap). A exclusão é deliberada: a UI é um complemento sem regra de negócio, e testar JavaFX exigiria TestFX, com testes lentos e frágeis para pouco retorno. Excluir somente o que não tem lógica é legítimo; excluir serviços ou exceções para aumentar o número não seria.
 - *Lint, em duas camadas com papéis diferentes:*
   - **Checkstyle no CI** é o lint **estético**: verifica convenções de código (imports não usados ou duplicados, `import x.*`, chaves obrigatórias, `;` solto). Falhas interrompem o pipeline.
-  - **SonarQube** é o lint de **qualidade e segurança**, executado **localmente** antes da entrega (não está integrado ao CI). O primeiro relatório apontou 4 issues: injeção de dependência por campo (`@Autowired`) e entidade JPA exposta diretamente no `@RequestBody` (risco de *mass assignment*, regra java:S4684). Ambas foram corrigidas: injeção por construtor e DTO `TarefaRequest` nas rotas. Os prints do antes e do depois ficam em `docs/evidencias/`.
+  - **SonarQube** é o lint de **qualidade e segurança**, executado **localmente** (não está integrado ao CI). O relatório inicial apontou 4 issues: injeção de dependência por campo (`@Autowired`) em duas classes e entidade JPA exposta diretamente no `@RequestBody` (risco de *mass assignment*, regra java:S4684) em duas rotas. As duas causas foram corrigidas no código: injeção por construtor e DTO `TarefaRequest`. Os prints do relatório estão em [`provas/`](provas/) (`sonar1.png` a `sonar5.png`).
   - Essas ferramentas não são equivalentes ao ESLint isoladamente: em Java, estilo (Checkstyle), qualidade (Sonar/PMD) e bugs (SpotBugs) são áreas distintas, e a combinação foi escolhida considerando o custo-benefício.
-- *Segredos fora do repositório:* `.env` no `.gitignore`, `.env.example` versionado, `application.properties` lendo variáveis de ambiente sem senha padrão. Uma verificação com **gitleaks** nos 14 commits do histórico não encontrou vazamentos, e uma busca direta (`git log -S`) pela senha antiga também retornou vazio.
+- *Segredos fora do repositório:* `.env` no `.gitignore`, `.env.example` versionado, `application.properties` lendo variáveis de ambiente sem senha padrão. Uma verificação com **gitleaks** no histórico (14 commits na data da verificação) não encontrou vazamentos, e uma busca direta (`git log -S`) pela senha antiga também retornou vazio.
 
 ## 4. Variáveis de ambiente
 
@@ -104,9 +104,9 @@ O PostgreSQL só lê `POSTGRES_*` na **primeira criação do volume**. Se a senh
 
 ## 5. Decisões arquiteturais
 
-Os ADRs ficam em [`docs/adr/`](docs/adr/), no formato MADR.
+Os ADRs ficam nesta pasta (`docs/`), no formato MADR.
 
-- [ADR 0001: Template Method na hierarquia de respostas de erro](docs/adr/0001-template-method-nas-respostas-de-erro.md)
+- [ADR 0001: Template Method na hierarquia de respostas de erro](ADR.MD)
 
 **Resumo da decisão defendida:** toda resposta de erro da API segue o mesmo molde (`ErrorResponse`, classe abstrata com `timestamp`, `status`, `error` e `message`), e cada tipo de erro define apenas o que varia (`getStatus()` e `getTipoErro()`). Assim, a API devolve sempre o mesmo formato de erro, e a criação de um novo tipo de erro exige apenas uma subclasse, sem alterações nas existentes.
 
@@ -123,14 +123,50 @@ Outras decisões registradas:
 
 ### Operação: logs, métrica e SLO
 
-- **Logs estruturados:** `logging.structured.format.console=logstash` (recurso nativo do Spring Boot). Cada evento é emitido como uma linha JSON, pronta para ser indexada por qualquer agregador.
-- **Métricas:** Spring Boot Actuator + Micrometer, expostas em `/actuator/prometheus`. Duas fontes: a métrica nativa `http_server_requests_seconds` (contagem e latência por rota, com histograma) e a métrica própria **`tarefas_criadas_total`** (contador no `TarefaServices`, incrementado a cada criação, via REST ou JavaFX). Por ser um contador, ela mostra tarefas criadas desde a inicialização da API e zera no restart; não representa o total existente no banco.
+- **Logs estruturados:** `logging.structured.format.console=logstash` (recurso nativo do Spring Boot). Cada evento é emitido como uma linha JSON, pronta para ser indexada por qualquer agregador ([prova](provas/logs-estruturados.png)).
+- **Métricas:** Spring Boot Actuator + Micrometer, expostas em `/actuator/prometheus` ([prova](provas/prometheus.png)). Duas fontes: a métrica nativa `http_server_requests_seconds` (contagem e latência por rota, com histograma) e a métrica própria **`tarefas_criadas_total`** (contador no `TarefaServices`, incrementado a cada criação, via REST ou JavaFX). Por ser um contador, ela mostra tarefas criadas desde a inicialização da API e zera no restart; não representa o total existente no banco.
 - **SLO:** 95% das requisições a `POST /adicionar` respondem em menos de 500 ms (p95), com taxa de erro 5xx abaixo de 1%.
-- **Como o SLO é medido:** smoke test k6 em `k6/smoke.js` (5 usuários virtuais, 30 s), com os limites configurados como `thresholds`, de modo que o próprio k6 falha se o SLO for violado. Resultado da última execução: **p95 = _[preencher] ms_, 0% de erros** (print em `docs/evidencias/k6.png`). Com o k6 instalado: `k6 run k6/smoke.js`.
+- **Como o SLO é verificado:** smoke test k6 em `k6/smoke.js` (5 usuários virtuais, 30 s), com os limites configurados como `thresholds`, de modo que o próprio k6 falha se o SLO for violado. Resultado: **p95 = 43,48 ms** (meta: 500 ms) e **0% de erros** em 145 requisições. Detalhes, metodologia e limitações em [`desempenho.md`](desempenho.md).
+
+### Documentação da API (OpenAPI)
+
+A API é documentada pelo padrão **OpenAPI 3**, gerado **a partir do código** com springdoc, e não escrito à mão. A especificação exportada está em [`openapi.yaml`](openapi.yaml) e a versão interativa fica em `/swagger-ui.html`.
+
+**Por que gerar do código.** Um contrato escrito à parte envelhece: basta alguém mudar uma rota e esquecer o arquivo. Gerado do código, o contrato acompanha o que a API realmente aceita. Por isso o manual de rotas saiu deste README: ele seria uma segunda cópia da mesma informação, sujeita a divergir.
+
+**Endpoint principal: `POST /adicionar`.** A rota de criação foi escolhida como endpoint principal porque é o fluxo central do CRUD (nada existe sem ela) e a única que escreve no banco a cada chamada, o que também a torna o alvo do SLO e do teste de carga. Todas as rotas aparecem na especificação, porque o springdoc as descreve automaticamente, mas o `/adicionar` recebeu a documentação detalhada, escrita de propósito:
+
+| O que a especificação traz | Como o `/adicionar` atende | Onde está |
+|---|---|---|
+| Resumo e descrição da operação | `@Operation(summary, description)` | `TarefaController` |
+| Schema nomeado e reutilizável (`$ref`) | Entidade anotada com `@Schema(name = "Tarefa")`, que vira `components/schemas/Tarefa` | `Tarefas` |
+| Campos obrigatórios (`required`) | `@NotBlank` no `TarefaRequest`, que o springdoc converte em `required` | `TarefaRequest` |
+| Tipos e detalhes por campo | `@Schema` com descrição e exemplo em cada campo | `TarefaRequest` |
+| Resposta de sucesso com schema | `201` com `content`, `schema` e exemplo completo | `@ApiResponses` |
+| Resposta de erro descrita | `400` (campos em branco) com exemplo do corpo de erro, e `500` | `@ApiResponses` |
+
+
+Para regenerar o arquivo exportado, com a API no ar:
+
+```bash
+curl http://localhost:8080/v3/api-docs.yaml -o docs/openapi.yaml
+```
+
+### Evidências
+
+Prints que sustentam as afirmações deste README, em [`provas/`](provas/):
+
+| Afirmação | Prova |
+|---|---|
+| Prints de problemas resolvidos no Sonar | [`sonar1.png`](provas/sonar1.png), [`sonar2.png`](provas/sonar2.png), [`sonar3.png`](provas/sonar3.png), [`sonar4.png`](provas/sonar4.png), [`sonar5.png`](provas/sonar5.png) |
+| SLO verificado pelo k6 (resumo da execução) | [`k6.1.png`](provas/k6.1.png) |
+| Limites do SLO cumpridos (`thresholds`) | [`k6.2.png`](provas/k6.2.png) |
+| Métricas expostas pelo Actuator | [`prometheus.png`](provas/prometheus.png) |
+| Logs estruturados em JSON | [`logs-estruturados.png`](provas/logs-estruturados.png) |
 
 ### Integração contínua
 
-O workflow `.github/workflows/ci.yml` é executado a cada push e pull request: instala dependências, executa o Checkstyle e roda `mvn clean verify` (testes e cobertura mínima). **O projeto possui CI, mas não possui CD**: não há deploy automático nem ambiente publicado.
+O workflow `.github/workflows/ci.yml` é executado a cada push e pull request: instala dependências, executa o Checkstyle e roda `mvn clean verify` (testes e cobertura mínima).
 
 ## 6. Contato
 
@@ -141,6 +177,10 @@ GitHub: [@Cayky153](https://github.com/Cayky153) · Dúvidas sobre o projeto: ab
 ---
 
 # Aprofundamento
+
+## Sobre este README
+
+Este README segue, nas seis primeiras seções, a ordem pedida pelo roteiro da disciplina: o que o sistema realiza (em duas frases); como inicializá-lo localmente com comandos que funcionem de primeira; como executar a bateria de testes; quais variáveis de ambiente são obrigatórias; onde se encontram as decisões arquiteturais; e a quem recorrer em caso de dúvidas. Como o projeto também faz parte do meu portfólio, o restante do documento detalha o projeto mais a fundo e defende como cada requisito do trabalho final foi atendido.
 
 ## Contextualização
 
@@ -197,7 +237,7 @@ Na etapa intermediária da disciplina, foi adicionada uma interface gráfica (Ja
 | Camada de serviço `TarefaServices` | Salvar, listar, buscar por ID, editar e deletar | Concluído |
 | Endpoints do CRUD | Criação, criação em lote, listagem, busca por ID, edição e remoção (ver Swagger) | Concluído |
 | Tratamento global de exceções | `GlobalExceptionHandler` com `@RestControllerAdvice` | Concluído |
-| Resposta de erro padronizada | `ErrorResponse` abstrata, com `ValidationErrorResponse` e `RuntimeErrorResponse` (ver ADR 0001) | Concluído |
+| Resposta de erro padronizada | `ErrorResponse` abstrata, com `ValidationErrorResponse` e `RuntimeErrorResponse` (ver [ADR 0001](ADR.MD)) | Concluído |
 | Validação | HTTP 400 para campos inválidos | Concluído |
 | Tarefa não encontrada | HTTP 404 via `TarefaNaoEncontradaException` (antes era 500) | Concluído |
 | Testes unitários de serviço | `TarefaServices` com Mockito, sucesso e falha | Concluído |
@@ -211,11 +251,13 @@ Na etapa intermediária da disciplina, foi adicionada uma interface gráfica (Ja
 ├── Dockerfile                      # build multi-stage da API
 ├── checkstyle.xml                  # regras do lint de convenções
 ├── k6/smoke.js                     # smoke test com thresholds (SLO)
-├── docs
-│   ├── adr/                        # decisões arquiteturais (MADR)
-│   ├── evidencias/                 # prints: Sonar antes/depois, CI, k6, gitleaks, Swagger
-│   └── openapi.yaml                # especificação exportada
 ├── .env.example                    # variáveis (sem segredos)
+├── docs
+│   ├── README.md                   # este arquivo
+│   ├── ADR.MD                      # decisão arquitetural (MADR)
+│   ├── desempenho.md               # SLO, metodologia e resultado do k6
+│   ├── openapi.yaml                # especificação exportada
+│   └── provas/                     # prints: Sonar, k6, métricas e logs
 └── src
     ├── main/java/com/example/demo
     │   ├── DemoApplication.java
