@@ -21,12 +21,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.mockito.Spy;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.example.demo.model.Tarefas;
 import com.example.demo.repository.TarefasRepo;
 import com.example.demo.service.TarefaServices;
 
+
 @ExtendWith(MockitoExtension.class)
+
 public class TarefaServicesTest {
+	
+	@Spy
+	MeterRegistry registry = new SimpleMeterRegistry();
 	
 	@InjectMocks
 	TarefaServices service;
@@ -102,29 +112,27 @@ public class TarefaServicesTest {
 	}
 	@Test
 	void SalvarSucess() {
-		
-		
+
 		when(repository.save(tarefa)).thenReturn(tarefa);
-		
+
 		Tarefas serviceAdicionar = service.adicionar(tarefa);
-		
-		assertEquals(tarefa,serviceAdicionar);
+
+		assertEquals(tarefa, serviceAdicionar);
+		assertEquals(1.0, registry.counter("tarefas_criadas_total").count());
 		verify(repository).save(tarefa);
 		verifyNoMoreInteractions(repository);
-		
 	}
 	@Test
 	void SalvarListaSucess() {
-		
-		
+
 		when(repository.saveAll(tarefasArray)).thenReturn(tarefasArray);
-		
+
 		List<Tarefas> serviceAdicionarLista = service.adicionarLista(tarefasArray);
-		
-		assertEquals(tarefasArray,serviceAdicionarLista);
+
+		assertEquals(tarefasArray, serviceAdicionarLista);
+		assertEquals(2.0, registry.counter("tarefas_criadas_total").count());
 		verify(repository).saveAll(tarefasArray);
 		verifyNoMoreInteractions(repository);
-		
 	}
 	
 	@Test

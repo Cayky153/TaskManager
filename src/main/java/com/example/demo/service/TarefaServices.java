@@ -4,18 +4,28 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 
 import com.example.demo.exception.TarefaNaoEncontradaException;
 import com.example.demo.model.Tarefas;
 import com.example.demo.repository.TarefasRepo;
 
+
+
+
 @Service
 public class TarefaServices {
 
 	private final TarefasRepo tarefaRepo;
+	private final Counter tarefasCriadas;
 
-	public TarefaServices(TarefasRepo tarefaRepo) {
+	public TarefaServices(TarefasRepo tarefaRepo, MeterRegistry registry) {
 		this.tarefaRepo = tarefaRepo;
+		 this.tarefasCriadas = Counter.builder("tarefas_criadas_total")
+	                .description("Total de tarefas criadas")
+	                .register(registry);
 	}
 
 	public List<Tarefas> listar() {
@@ -28,13 +38,17 @@ public class TarefaServices {
 		return tarefaRepo.findById(id);
 	}
 	
-	public <T extends Tarefas> T adicionar(T t) {
-		return tarefaRepo.save(t);
-	}
+	  public Tarefas adicionar(Tarefas tarefa) {
+	        Tarefas salva = tarefaRepo.save(tarefa);
+	        tarefasCriadas.increment();
+	        return salva;
+	    }
 	
-	public <T extends Tarefas> List<T> adicionarLista(List<T> tarefas) {
-		return tarefaRepo.saveAll(tarefas);
-	}
+	  public List<Tarefas> adicionarLista(List<Tarefas> tarefas) {
+		    List<Tarefas> salvas = tarefaRepo.saveAll(tarefas);
+		    tarefasCriadas.increment(salvas.size());
+		    return salvas;
+		}
 
 	public Tarefas editar(Long id, Tarefas nova) {
 		Tarefas existente = tarefaRepo.findById(id).orElseThrow(TarefaNaoEncontradaException::new);
